@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/_200sdp">
+        <ImageView
+            android:id="@+id/img_thumb"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:src="@drawable/messi">
+        </ImageView>
+
+        <LinearLayout
+
+            android:background="@color/black_t"
+            android:padding="@dimen/_8sdp"
+            android:layout_alignParentBottom="true"
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:id="@+id/tv_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Messi lập kỷ lục hiếm"
+                android:lines="1"
+                android:textStyle="bold"
+                android:textColor="@android:color/white"
+                android:textSize="@dimen/_14sdp"
+                />
+
+            <TextView
+                android:id="@+id/tv_desc"
+                android:layout_marginTop="@dimen/_8sdp"
+                android:lines="3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="TÂY BAN NHALionel Messi trở thành cầu thủ đầu tiên trong lịch sử bóng đá Tây Ban Nha sở hữu 500 chiến thắng."
+                android:textSize="@dimen/_12sdp"
+                android:textColor="@android:color/white"
+
+                />
+        </LinearLayout>
+    </RelativeLayout>
+
+</LinearLayout>

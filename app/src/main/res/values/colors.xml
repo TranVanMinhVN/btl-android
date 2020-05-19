@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#D95F45</color>
+    <color name="colorPrimaryDark">#00574B</color>
+    <color name="colorAccent">#D81B60</color>
+    <color name="black_t">#8C000000</color>
+    <color name="time">#B8B7F4</color>
+    <color name="brgbaiviet">#CCCBE1</color>
+    <color name="black">#1A1111</color>
+</resources>
