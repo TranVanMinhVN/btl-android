@@ -4,42 +4,57 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:orientation="vertical"
-        tools:ignore="MissingConstraints">
+        tools:ignore="MissingConstraints"
+        android:gravity="center"
+        >
         <RelativeLayout
+            android:id="@+id/rlv_menu"
             android:layout_width="match_parent"
-            android:layout_height="@dimen/_45sdp"
-            tools:ignore="MissingConstraints"
+            android:layout_height="@dimen/_29sdp"
             android:background="@color/colorPrimary"
+            tools:ignore="MissingConstraints"
             >
             <ImageView
                 android:id="@+id/img_menu"
-                android:layout_marginLeft="@dimen/_12sdp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/baseline_menu_white_18dp"
                 android:layout_centerVertical="true"
-                />
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Báo MTV"
-                android:textColor="@android:color/white"
-                android:layout_centerInParent="true"
-                android:textSize="@dimen/_13sdp"
-                android:textStyle="bold"
-                />
-
+                android:layout_marginLeft="@dimen/_12sdp"
+                android:src="@drawable/baseline_menu_white_18dp" />
         </RelativeLayout>
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rv_post"
+        <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/rlv_menu"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            >
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_post"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                >
+            </androidx.recyclerview.widget.RecyclerView>
+        </RelativeLayout>
+        <com.arlib.floatingsearchview.FloatingSearchView
+            android:layout_centerVertical="true"
+            android:id="@+id/floating_search_view"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-        </androidx.recyclerview.widget.RecyclerView>
-    </LinearLayout>
+            android:layout_height="match_parent"
+            app:floatingSearch_searchBarMarginLeft="@dimen/_38sdp"
+            app:floatingSearch_searchBarMarginTop="@dimen/_3sdp"
+            app:floatingSearch_searchBarMarginRight="@dimen/_5sdp"
+            app:floatingSearch_searchHint="Nhập nội dung cần t..."
+            app:floatingSearch_suggestionsListAnimDuration="250"
+            app:floatingSearch_showSearchKey="false"
+            app:floatingSearch_leftActionMode="noLeftAction"
+            app:floatingSearch_close_search_on_keyboard_dismiss="true"
+            tools:layout_editor_absoluteY="8dp"
+            tools:layout_editor_absoluteX="8dp"
+            />
+    </RelativeLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

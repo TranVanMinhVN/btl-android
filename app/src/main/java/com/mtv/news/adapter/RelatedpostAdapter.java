@@ -22,6 +22,15 @@ public class RelatedpostAdapter  extends RecyclerView.Adapter<RelatedpostAdapter
     private List<New> newList;
     private AdapterListener listener;
 
+
+    public List<New> getNewList() {
+        return newList;
+    }
+
+    public void setNewList(List<New> newList) {
+        this.newList = newList;
+    }
+
     Context context;
 
     public RelatedpostAdapter(List<New> newList, Context context) {
@@ -47,6 +56,7 @@ public class RelatedpostAdapter  extends RecyclerView.Adapter<RelatedpostAdapter
                 .load(newList.get(position).getUrlImg())
                 .resize(100,70).noFade().into(holder.imgThumb2);
         holder.tvTitle2.setText(newList.get(position).getName());
+        holder.tvNote.setText(newList.get(position).getNote());
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -63,11 +73,13 @@ public class RelatedpostAdapter  extends RecyclerView.Adapter<RelatedpostAdapter
 
         public ImageView imgThumb2;
         public TextView tvTitle2;
+        public TextView tvNote;
 
         public RelatepostViewHolder( View itemView) {
             super(itemView);
             imgThumb2 = itemView.findViewById(R.id.img1);
             tvTitle2 = itemView.findViewById(R.id.tv1);
+            tvNote = itemView.findViewById(R.id.tv_note);
         }
     }
 }

@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -34,6 +35,7 @@ public class NewDetailActivity extends AppCompatActivity {
     private RecyclerView rvRelatedpost;
 
     List<New> newList;
+    List<New> newList2;
 
     int isSelected;
 
@@ -44,6 +46,8 @@ public class NewDetailActivity extends AppCompatActivity {
     TextView textContent;
     TextView textAuthor;
     ImageView img1;
+    ScrollView scrollView;
+
     private RecyclerView rvMenu;
 
     private MenuAdapter menuAdapter;
@@ -70,6 +74,8 @@ public class NewDetailActivity extends AppCompatActivity {
         textContent = findViewById(R.id.tv_content);
         img1 = findViewById(R.id.img1);
         textAuthor = findViewById(R.id.tvAuthor);
+        scrollView = findViewById(R.id.mainScrollView);
+
         setData();
         imgMenu = findViewById(R.id.img_menu);
         final SlidingMenu menu = new SlidingMenu(this);
@@ -116,7 +122,7 @@ public class NewDetailActivity extends AppCompatActivity {
         rvRelatedpost = findViewById(R.id.rv_relatedpost);
         rvRelatedpost.setLayoutManager(new LinearLayoutManager(this));
         rvRelatedpost.setItemAnimator(new DefaultItemAnimator());
-        RelatedpostAdapter relatedpostAdapter = new RelatedpostAdapter(newList,this);
+        final RelatedpostAdapter relatedpostAdapter = new RelatedpostAdapter(newList2,this);
         relatedpostAdapter.setListener(new AdapterListener() {
             @Override
             public void onItemClickListener(Object o, int pos, RecyclerView.ViewHolder holder) {
@@ -124,12 +130,29 @@ public class NewDetailActivity extends AppCompatActivity {
             }
             @Override
             public void onClick(New n) {
-                Intent intent = new Intent(NewDetailActivity.this, NewDetailActivity.class);
-                Bundle bundle = new Bundle();
-                String newJson = Utils.getGsonParser().toJson(n);
-                bundle.putString(MainActivity.NEW,newJson);
-                intent.putExtra(MainActivity.BUNDEL,bundle);
-                startActivity(intent);
+                textView.setText(n.getTime());
+                textName.setText(n.getName());
+                textNode.setText(n.getNote());
+                textContent.setText(n.getContent());
+                Picasso.with(NewDetailActivity.this)
+                        .load(n.getUrlImg())
+                        .resize(750,452).noFade().into(img1);
+                Author author = authorDAO.getAuthorById(n.getAuthorId());
+                textAuthor.setText(author.getName());
+                isSelected = n.getCategoryId();
+                newList2 = newDTO.getNewByCategory2(n.getCategoryId(),n.getNewId());
+
+                relatedpostAdapter.setNewList(newList2);
+
+                rvRelatedpost.setAdapter(relatedpostAdapter);
+                scrollView.post(new Runnable() {
+                    public void run() {
+                        scrollView.scrollTo(0, 0);
+                    }
+                });
+
+//                onClick(n);
+
             }
         });
         rvRelatedpost.setAdapter(relatedpostAdapter);
@@ -148,6 +171,7 @@ public class NewDetailActivity extends AppCompatActivity {
                 .resize(750,452).noFade().into(img1);
         Author author = authorDAO.getAuthorById(n.getAuthorId());
         textAuthor.setText(author.getName());
+        newList2 = newDTO.getNewByCategory2(n.getCategoryId(),n.getNewId());
         isSelected = n.getCategoryId();
     }
 }

@@ -82,7 +82,32 @@ public class NewDTO extends SQLiteOpenHelper {
         }
         return list;
     }
-
+    public ArrayList<New> getNewByCategory2(int category_id,int id){
+        ArrayList<New> list = new ArrayList<>();
+        String sql = "Select * from " + TableName +" WHERE category_id="+category_id+" AND new_id != "+id;
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery(sql, null);
+        if(cursor != null){
+            while (cursor.moveToNext()){
+                New n = new New(cursor.getInt(0), cursor.getInt(1),cursor.getInt(2),cursor.getString(3),cursor.getString(4),cursor.getString(5),cursor.getString(6),cursor.getString(7),cursor.getString(8),cursor.getString(9),cursor.getString(10));
+                list.add(n);
+            }
+        }
+        return list;
+    }
+    public ArrayList<New> getNewByName(String name){
+        ArrayList<New> list = new ArrayList<>();
+        String sql = "Select * from " + TableName +" WHERE name LIKE '%"+name+"%';";
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.rawQuery(sql, null);
+        if(cursor != null){
+            while (cursor.moveToNext()){
+                New n = new New(cursor.getInt(0), cursor.getInt(1),cursor.getInt(2),cursor.getString(3),cursor.getString(4),cursor.getString(5),cursor.getString(6),cursor.getString(7),cursor.getString(8),cursor.getString(9),cursor.getString(10));
+                list.add(n);
+            }
+        }
+        return list;
+    }
     public void addNew(New n){
 
         SQLiteDatabase db= this.getWritableDatabase();

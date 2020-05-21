@@ -8,13 +8,22 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.PopupMenu;
+import android.widget.SearchView;
+import android.widget.Toast;
 
+import com.arlib.floatingsearchview.FloatingSearchView;
+import com.arlib.floatingsearchview.suggestions.model.SearchSuggestion;
 import com.jeremyfeinstein.slidingmenu.lib.SlidingMenu;
 import com.mtv.news.activity.NewDetailActivity;
 import com.mtv.news.adapter.MenuAdapter;
 import com.mtv.news.adapter.PostAdapter;
+import com.mtv.news.entity.Author;
 import com.mtv.news.entity.DAO.AuthorDAO;
 import com.mtv.news.entity.DAO.CategoryDAO;
 import com.mtv.news.entity.Category;
@@ -22,6 +31,7 @@ import com.mtv.news.entity.DAO.NewDTO;
 import com.mtv.news.entity.New;
 import com.mtv.news.interfaces.AdapterListener;
 import com.mtv.news.json.Utils;
+import com.mtv.news.search.Suggestion;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,14 +41,11 @@ public class MainActivity extends AppCompatActivity {
     public static final String NEW = "NEW";
     public static final String BUNDEL = "BUNDEL";
 
-    private String url = "http://127.0.0.1:8080/new/all/category";
-
     private ImageView imgView;
     private RecyclerView rvMenu;
-
     private MenuAdapter menuAdapter;
-
     private RecyclerView rvPost;
+    private ImageView imgSearch;
 
     private List<Category> menuEntities = new ArrayList<>();
     private List<New> newList = new ArrayList<>();
@@ -51,6 +58,7 @@ public class MainActivity extends AppCompatActivity {
 
     private Context context = this;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -59,6 +67,10 @@ public class MainActivity extends AppCompatActivity {
         categoryDAO = new CategoryDAO(this,"Category2",null,1);
         authorDAO = new AuthorDAO(this,"Author",null,1);
         newDTO = new NewDTO(this,"Newspaper",null,1);
+
+        List<New> list = newDTO.getNewByName("barca");
+
+        handleSearch(newDTO.getAllNew());
 
         imgView = findViewById(R.id.img_menu);
         final SlidingMenu menu = new SlidingMenu(this);
@@ -92,7 +104,6 @@ public class MainActivity extends AppCompatActivity {
             category.setSelected(true);
             categoryDAO.updateCategory(id,category);
             newList = newDTO.getNewByCategory(id);
-            //  menuAdapter.notifyDataSetChanged();
         }else {
             Category category1
                     = new Category(1,"Thời sự",true);
@@ -118,26 +129,7 @@ public class MainActivity extends AppCompatActivity {
                 categoryDAO.updateCategory(category.getCategoryId(),category);
                 newList = newDTO.getNewByCategory(category.getCategoryId());
                 selectedCategory = category;
-
-                PostAdapter postAdapter = new PostAdapter(context,newList);
-                postAdapter.setListener(new AdapterListener() {
-                    @Override
-                    public void onItemClickListener(Object o, int pos, RecyclerView.ViewHolder holder) {
-
-                    }
-                    @Override
-                    public void onClick(New n) {
-                        Intent intent = new Intent(MainActivity.this, NewDetailActivity.class);
-                        Bundle bundle = new Bundle();
-                        String newJson = Utils.getGsonParser().toJson(n);
-                        bundle.putString(NEW,newJson);
-                        intent.putExtra(BUNDEL,bundle);
-                        startActivity(intent);
-                    }
-                });
-                rvPost.setAdapter(postAdapter);
-
-                menuAdapter.notifyDataSetChanged();
+                setMenuAdapter(newList);
                 menu.toggle();
             }
 
@@ -148,12 +140,29 @@ public class MainActivity extends AppCompatActivity {
         });
 
         rvMenu = (RecyclerView) menu.findViewById(R.id.rv_menu);
-
-
         rvMenu.setLayoutManager(new LinearLayoutManager(this));
         rvMenu.setItemAnimator(new DefaultItemAnimator());
         rvMenu.setAdapter(menuAdapter);
+        setRV();
+    }
 
+    public void addNew(){
+        Author author = new Author(2,"Trần Minh Quang","Nam Định","123333333");
+        Author author1 = new Author(3,"Phan Văn Chinh","Quảng Ninh","2322222222");
+        authorDAO.addAuthor(author1);
+        authorDAO.addAuthor(author);
+        New n = new New(1,1,1,"Đà Nẵng đón chuyến bay đưa 240 công dân từ Myanmar về nước","Đây là chuyến bay được thực hiện nhờ sự hỗ trợ của Cục Lãnh sự, Bộ Ngoại giao nhằm đưa những công dân nước ta về tránh dịch Covid-19.","Lúc 15 giờ 45 phút chiều nay (21/5), chuyến bay VJ 832 của Hãng Hàng không VietJet đã về tới Sân bay Quốc tế Đà Nẵng, chở theo 240 hành khách là công dân Việt Nam từ Myanmar về tránh dịch Covid-19.\nĐây là chuyến bay được thực hiện nhờ sự hỗ trợ của Cục Lãnh sự, Bộ Ngoại giao nhằm đưa những công dân nước ta về tránh dịch Covid-19. Hành khách trên chuyến bay này chủ yếu là người già, trẻ em, sinh viên phải nghỉ học tránh dịch và những công dân hoàn cảnh khó khăn bên nước bạn. Sau khi hạ cánh xuống Sân bay Quốc tế Đà Nẵng, máy bay được bố trí khu vực đỗ riêng, sau đó các bộ phận Kiểm dịch Y tế quốc tế, Hải quan, Công an Xuất nhập cảnh sẽ trực tiếp làm thủ tục ngay tại chân máy bay.","https://images.vov.vn/cr_w990/uploaded/cizotokek8ly8uzveukg/2020_05_21/chuan_bi_don_khach_xuong_lam_thu_tucvov__ikvr.jpg","Thứ 5, 19:21, 21/05/2020","");
+        New n1 = new New(6,1,1,"Các quan chức cấp cao APEC sẽ họp trực tuyến để thảo luận COVID-19","Hội nghị sẽ thảo luận các vấn đề liên quan đến phục hồi kinh tế, trong khi đảm bảo rằng các nỗ lực hiện nay nhằm giảm thiểu các tác động y tế của dịch tiếp tục đem lại kết quả tích cực.","Bộ Thương mại và công nghiệp Malaysia ngày 21/5 thông báo nước này sẽ chủ trì một hội nghị trực tuyến các quan chức cấp cao của Diễn đàn Hợp tác kinh tế châu Á-Thái Bình Dương (APEC).\nHội nghị sẽ diễn ra ngày 27/5, tập trung vào việc thực hiện tuyên bố của Các Bộ trưởng thương mại APEC về đại dịch viêm đường hô hấp cấp COVID-19, thảo luận các vấn đề liên quan đến phục hồi kinh tế, trong khi đảm bảo rằng các nỗ lực hiện nay nhằm giảm thiểu các tác động y tế của dịch tiếp tục đem lại kết quả tích cực.\nĐầu tháng trước, các bộ trưởng thương mại APEC đã ra tuyên bố kêu gọi tăng cường hợp tác giữa các nền kinh tế thành viên nhằm tạo điều kiện cho thương mại, coi đây là một biện pháp để chống dịch.","https://cdnimg.vietnamplus.vn/t620/uploaded/hotnnz/2020_05_21/ttxvnkinh_te_chau_a.jpg","21/05/2020 18:57 GMT+7 ","");
+       New n2 = new New(7,2,1,"Nắng nóng sắp chấm dứt, cảnh báo lũ quét và ngập lụt","Từ chiều tối và đêm nay, khu vực vùng núi và trung du Bắc Bộ có mưa, mưa vừa và giông, có nơi mưa to đến rất to.","Chiều và đêm mai, vùng mưa mở rộng xuống các tỉnh đồng bằng Bắc Bộ và Bắc Trung Bộ.\nTừ mai, trên các sông suối khu vực Bắc Bộ sẽ xuất hiện một đợt lũ với biên độ lũ lên ở thượng lưu từ 2 - 4m, hạ lưu từ 1 - 2m. Mực nước đỉnh lũ trên các sông dưới mức báo động 1.\nTừ ngày 23/5, trên sông Bưởi và thượng nguồn các sông thuộc Thanh Hóa, Nghệ An khả năng xuất hiện lũ nhỏ với biên độ lũ lên từ 1 - 3m.\nNguy cơ cao xảy ra lũ quét và sạt lở đất, ngập lụt ở vùng trũng tại nhiều tỉnh vùng núi khu vực Bắc Bộ và Bắc Trung Bộ, đặc biệt tại các tỉnh Lào Cai, Yên Bái, Cao Bằng, Bắc Kạn, Lạng Sơn, Hà Giang, Tuyên Quang, Thanh Hóa, Nghệ An.","https://vnn-imgs-f.vgcloud.vn/2020/05/21/10/nang-nong-sap-cham-dut-canh-bao-lu-quet-va-ngap-lut.jpg"," 21/05/2020 11:42 GMT+7","");
+       New n3 = new New(8,2,1,"Nhà máy xử lý rác tai tiếng ở Hải Dương đổ tro xỉ ra môi trường","Nhà máy xử lý rác thải Việt Hồng (huyện Thanh Hà, Hải Dương) từng bị phản ánh gây ô nhiễm, giờ đây tiếp tục đổ tro thải ra môi trường.","Gần chục ngày nay, người dân 2 xã Cổ Dũng, Tuấn Việt (huyện Kim Thành) phát hiện những đống tro xỉ rác thải của nhà máy xử lý rác thải Việt Hồng được đơn vị chủ quản là công ty CP Quản lý công trình đô thị Hải Dương “tập kết” bên ngoài khuôn viên nhà máy, để san lấp mặt bằng.\nTheo người dân, vị trí đổ xỉ thải trước đây là đất ruộng, sau khi nhà máy xử lý rác đưa vào hoạt động, khu ruộng thành vùng sình lầy, nước luôn đen kịt.\nTrong xỉ thải đổ ra môi trường có lẫn nhiều tạp chất, thậm chí là rác thải như vải, nilon, nhựa, sắt vụn… chưa cháy hết trộn lẫn với nhau.\nLúc mới đổ ra, “vật liệu san lấp” này bốc mùi xú uế nồng nặc, người hít nhiều bị nhức đầu, chóng mặt.","https://vnn-imgs-f.vgcloud.vn/2020/05/19/23/nha-may-xu-ly-rac-thai-bi-to-1.jpg","21/05/2020 06:03 GMT+7","");
+
+
+        newDTO.addNew(n2);
+        newDTO.addNew(n3);
+        newList = newDTO.getNewByCategory(1);
+    }
+
+    void setRV(){
         rvPost = findViewById(R.id.rv_post);
         rvPost.setLayoutManager(new LinearLayoutManager(this));
         rvPost.setItemAnimator(new DefaultItemAnimator());
@@ -179,34 +188,91 @@ public class MainActivity extends AppCompatActivity {
         rvPost.setHasFixedSize(true);
     }
 
-    public void addNew(){
-       New n = new New(1,1,3,"Giá vàng hôm nay","Sau 3 phiên giảm liên tiếp, sáng nay 30/4 giá vàng thế giới bật tăng trong bối cảnh kinh tế Mỹ trải qua quý tệ nhất từ khủng hoảng 2008","Giá vàng trong nước, tính tới 8h30 sáng 12.5, giá vàng miếng trong nước được Tập Đoàn Vàng bạc đá quý Doji niêm yết ở mức: 47,8 triệu đồng/lượng mua vào và 48,1 triệu đồng/lượng bán ra, không đổi ở chiều mua vào và giảm 50 ngàn đồng chiều bán ra so với cuối phiên liền trước.\n" +
-               "Công ty vàng bạc đá quý Sài Gòn niêm yết giá vàng SJC ở mức 47,7 triệu đồng/lượng mua vào và 48,17 triệu đồng/lượng bán ra, giảm 50 ngàn đồng ở chiều mua vào và giảm 100 ngàn đồng chiều bán ra so với cuối phiên giao dịch 11.5.\n" +
-               "Giá vàng thế giới hôm nay hiện đang giao ngay ở ngưỡng 1.695 USD/ounce. Giá vàng bất ngờ quay đầu giảm trong bối cảnh đồng USD tăng cao. Thị trường lo ngại một làn sóng COVID-19 mới khi xuất hiện ổ dịch ở Vũ Hán (Trung Quốc) sau một tháng dỡ phong tỏa. Tại Hàn Quốc, số ca nhiễm SARS-CoV-2 tăng vọt do ổ dịch tại các quán bar ở Itaewon, Seoul. \n" +
-               "Các nước mở rộng quy mô các gói hỗ trợ, kích thích kinh tế nhằm phục hồi sản xuất, lấy lại đà tăng trưởng. cũng ảnh hưởng đến đà tăng của giá vàng Ngoài ra, căng thẳng Mỹ- Trung Quốc cũng khiến các nhà đầu tư \"chững lại\" để chờ những tín hiệu mới.\n" +
-               "Dù vậy, các chuyên gia phân tích thị trường và nhà đầu tư vẫn kỳ vọng giá kim loại quý này sẽ đi lên trong những ngày tới.","https://vnn-imgs-f.vgcloud.vn/2020/04/27/21/gia-vang-hom-nay-28-4-vang-van-o-tren-dinh-du-giam-manh-1.jpg","","","Thứ Hai, ngày 04/05/2020 09:19 AM (GMT+7)\n","");
-     //   New n2 = new New(4,1,4,"Phản ứng của ông Trump trước tin ông Kim Jong Un bất ngờ xuất hiện","Tổng thống Mỹ Donald Trump đã lên tiếng khi được hỏi về thông tin nhà lãnh đạo Triều Tiên Kim Jong Un tái xuất sau 20 ngày vắng mặt.","a","https://bom.to/IVybnM");
-        New n2 = new New(2,1,2,"Bí mật về Messi: Dòng máu châu Á trong huyết quản","Lionel Messi là một huyền thoại của bóng đá thế giới với sự nghiệp gắn bó cùng Barcelona.",
-                "Ý nghĩa cách ăn mừng của Messi\n" +
-                        "Màn ăn mừng bàn thắng chỉ tay và hướng lên bầu trời của Leo Messi là để tri ân người bà đã mất năm 1998, Celia Olivera Cuccittini. Chính bà là người ủng hộ Leo Messi đi thi đấu khi anh còn là một đứa trẻ. Những nỗ lực của bà Celia Olivera đã đem đến một cầu thủ vĩ đại cho Barcelona nói riêng, cũng như bóng đá thế giới nói chung.\nĐam mê với xăm mình\n" +
-                        "Messi thích xăm mình, điều này có thể nhận ra vì cơ thể anh đầy những hình vẽ ở tay phải và chân trái với tên vợ con anh. Messi ban đầu không phải người ưa thích xăm mình. Anh giữ cơ thể không có vết mực nào trong suốt nhiều năm, mặc cho các đồng nghiệp đua nhau 'kể chuyện cuộc đời' bằng hình xăm." +
-                        "\n" +
-                        "Hình xăm đầu tiên của Messi là hình mẹ anh, bà Celia Maria Cuccittini. Anh xăm lên bờ vai trái, ngay đằng sau trái tim mình.","https://media.thethao247.vn/upload/anhtuan/2019/12/22/messi.jpg","","","12/05/2020 14:53:00 (GMT+7)","");
-        New n3 = new New(4,1,2,"Lịch thi đấu của Barca hiểm họa khôn lường","Một tờ báo thể thao nổi tiếng thân Barcelona vừa tiết lộ lịch thi đấu gây sốc mà Messi và các đồng đội sẽ phải trải qua trong thời gian tới ở La Liga.","Mới đây, chia sẻ trên kênh truyền hình Vamos (Tây Ban Nha), Chủ tịch La Liga - ông Javier Tebas đã tiết lộ về mong muốn giải đấu này sẽ trở lại vào vào ngày 12/6 để thi đấu nốt 11 vòng còn lại của mùa giải 2019/20 đang dang dở vì đại dịch Covid-19:\n\"Tôi không biết chắc chắn ngày nào La Liga sẽ trở lại. Thời điểm có khả năng nhất là ngày 19/6, nhưng tôi mong muốn mốc đó sẽ sớm hơn 1 tuần, vào ngày 12/6 chẳng hạn. Nó phụ thuộc vào những diễn biến sắp tới (của dịch Covid-19 và ý kiến của Chính phủ Tây Ban Nha).\"\nÔng Tebas cũng hy vọng rằng các khán giả truyền hình sẽ được theo dõi mỗi ngày ít nhất một trận đấu ở La Liga khi 110 trận đấu ở 11 vòng còn lại của giải đấu này diễn ra liên tục trong hơn 1 tháng tới.","https://cdn.24h.com.vn/upload/2-2020/images/2020-05-11/Barca-960-1589195208-970-width660height426.jpg","Thứ Hai, ngày 11/05/2020 19:05 PM (GMT+7)\n","");
+    void setMenuAdapter(List<New> newList){
+        PostAdapter postAdapter = new PostAdapter(context,newList);
+        postAdapter.setListener(new AdapterListener() {
+            @Override
+            public void onItemClickListener(Object o, int pos, RecyclerView.ViewHolder holder) {
 
+            }
+            @Override
+            public void onClick(New n) {
+                Intent intent = new Intent(MainActivity.this, NewDetailActivity.class);
+                Bundle bundle = new Bundle();
+                String newJson = Utils.getGsonParser().toJson(n);
+                bundle.putString(NEW,newJson);
+                intent.putExtra(BUNDEL,bundle);
+                startActivity(intent);
+            }
+        });
+        rvPost.setAdapter(postAdapter);
 
-       // newDTO.deleteNew(2);
-       // newDTO.addNew(n2);
+        menuAdapter.notifyDataSetChanged();
+    }
 
-        New n4 = new New(4,1,2,"Nội bộ Barca dậy sóng","Mối bất hòa giữa đội trưởng Lionel Messi và tân HLV Barcelona - Quique Setien đang được đẩy lên cao trào trong bối cảnh đội chủ sân Nou Camp vẫn đang khát khao săn cú đúp danh hiệu.","Barcelona và 19 CLB khác của La Liga sẽ được phép trở lại tập luyện theo nhóm đông cầu thủ (14 người/lần) trên sân tập theo sự cho phép của chính phủ Tây Ban Nha từ thứ Hai (19/5). Tuy nhiên, nội bộ của đội ĐKVĐ Tây Ban Nha lại đang nảy sinh mâu thuẫn đáng lo ngại.\nChia sẻ trên tờ Sport (Tây Ban Nha), Messi khẳng khái nói: \"Tôi không bao giờ nghi ngờ vào đội hình câu lạc bộ đang sở hữu và cũng chẳng nghi ngờ về khả năng Barcelona sẽ vô địch ở những giải đấu còn lại trong mùa giải (La Liga và Champions League).\nMỗi cầu thủ có ý kiến cá nhân riêng và đều cần được tôn trọng. Tôi cảm thấy may mắn khi được chơi bóng hàng năm ở Champions League và biết rằng vô địch là nhiệm vụ bất khả thi nếu toàn đội vẫn cứ chơi bóng như cách từng làm.\"","https://cdn.24h.com.vn/upload/2-2020/images/2020-05-17/Noi-bo-Barca-day-song-Bi-Messi-chi-trich-kem-tai-HLV-Setien-phan-phao-lionel-messiquique-setien-barcelona-2019-20_1gn9an-1589689928-251-width660height371.jpg","Chủ Nhật, ngày 17/05/2020 13:05 PM (GMT+7)\n","");
+    void handleSearch( ArrayList<New> newLists ){
 
-        New n5 = new New (5,1,2,"Barca mừng lớn vụ SAO 111 triệu euro","Inter Milan chịu bán Lautaro Martinez cho Barcelona nhưng thương vụ vẫn đang chờ diễn biến mới.","Barcelona trong thời gian qua đã ngày một tập trung hơn vào việc sở hữu chữ ký của tiền đạo người Argentina Lautaro Martinez, người đang có phong độ cao trong màu áo Inter Milan và cùng với Lionel Messi thi đấu tại Copa America 2018 và đoạt hạng Ba. Mới đây báo giới TBN cho biết thương vụ này đã có bước tiến triển quan trọng." +
-                "\nTờ Mundo Deportivo tại Barcelona cho biết mặc dù Inter Milan đã duy trì quan điểm Barca phải trả số tiền 111 triệu euro trong điều khoản thanh lý hợp đồng của Lautaro, nhưng mới đây đội bóng xứ Catalunya đã thành công trong việc thuyết phục Inter Milan giảm giá.\nSố tiền Barca thanh toán sẽ là 60 triệu euro, còn lại Barca đổi một vài cầu thủ sang Inter.","https://cdn.24h.com.vn/upload/2-2020/images/2020-05-17/15894863076083-660-1589659061-23-width660height371.jpg","Chủ Nhật, ngày 17/05/2020 19:01 PM (GMT+7)","");
+         final ArrayList<Suggestion> suggestionList = initData(newLists);
 
-        newDTO.addNew(n5);
-        //newDTO.addNew(n4);
-       // newDTO.deleteNew(4);
-       // newDTO.addNew(n3);
-        newList = newDTO.getNewByCategory(1);
+        final FloatingSearchView searchView= (FloatingSearchView) findViewById(R.id.floating_search_view);
+
+        searchView.setOnQueryChangeListener(new FloatingSearchView.OnQueryChangeListener() {
+            @Override
+            public void onSearchTextChanged(String oldQuery, String newQuery) {
+                if (!oldQuery.equals("") && newQuery.equals("")) {
+                    searchView.clearSuggestions();
+                } else {
+                    searchView.showProgress();
+                    searchView.swapSuggestions(getSuggestion(newQuery,suggestionList));
+                    searchView.hideProgress();
+                }
+            }
+        });
+        searchView.setOnFocusChangeListener(new FloatingSearchView.OnFocusChangeListener() {
+            @Override
+            public void onFocus() {
+                searchView.showProgress();
+                searchView.swapSuggestions(getSuggestion(searchView.getQuery(),suggestionList));
+                searchView.hideProgress();
+            }
+
+            @Override
+            public void onFocusCleared() {
+
+            }
+        });
+        searchView.setOnSearchListener(new FloatingSearchView.OnSearchListener() {
+            @Override
+            public void onSuggestionClicked(SearchSuggestion searchSuggestion) {
+                Suggestion suggestion= (Suggestion) searchSuggestion;
+                newList = newDTO.getNewByName(suggestion.getName());
+                setMenuAdapter(newList);
+            }
+
+            @Override
+            public void onSearchAction(String currentQuery) {
+
+            }
+        });
+    }
+
+    private ArrayList<Suggestion> initData(ArrayList<New> newLists){
+        ArrayList<Suggestion> list = new ArrayList<>();
+
+        for(New n : newLists){
+            Suggestion suggestion = new Suggestion(n.getName());
+            list.add(suggestion);
+        }
+        return list;
+    }
+
+    private List<Suggestion> getSuggestion(String query , ArrayList<Suggestion> list){
+        List<Suggestion> suggestions=new ArrayList<>();
+        for(Suggestion suggestion: list){
+            if(suggestion.getName().toLowerCase().contains(query.toLowerCase())){
+                suggestions.add(suggestion);
+            }
+        }
+        return suggestions;
     }
 }
